@@ -1,5 +1,5 @@
 /bin/
-/pkg/
+
 *.exe
 *.out
 *.log
