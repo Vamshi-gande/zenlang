@@ -25,19 +25,9 @@ func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	switch l.currentChar {
+	// ---------------------------------------------------------------
 	// Single character tokens
-	case '+':
-		tok = token.Token{Type: token.PLUS, Literal: string(l.currentChar)}
-		l.advance()
-	case '-':
-		tok = token.Token{Type: token.MINUS, Literal: string(l.currentChar)}
-		l.advance()
-	case '*':
-		tok = token.Token{Type: token.ASTERISK, Literal: string(l.currentChar)}
-		l.advance()
-	case '/':
-		tok = token.Token{Type: token.SLASH, Literal: string(l.currentChar)}
-		l.advance()
+	// ---------------------------------------------------------------
 	case '(':
 		tok = token.Token{Type: token.LPAREN, Literal: string(l.currentChar)}
 		l.advance()
@@ -62,24 +52,31 @@ func (l *Lexer) NextToken() token.Token {
 	case ';':
 		tok = token.Token{Type: token.SEMICOLON, Literal: string(l.currentChar)}
 		l.advance()
+	case ':':
+		tok = token.Token{Type: token.COLON, Literal: string(l.currentChar)}
+		l.advance()
 
-	// Two character tokens — require peeking
+	// ---------------------------------------------------------------
+	// Two-character tokens — require peeking at the next character
+	// ---------------------------------------------------------------
 	case '=':
 		if l.reader.PeekChar() == '=' {
-			l.advance() // consume second '='
+			l.advance()
 			tok = token.Token{Type: token.EQ, Literal: "=="}
 		} else {
 			tok = token.Token{Type: token.ASSIGN, Literal: "="}
 		}
 		l.advance()
+
 	case '!':
 		if l.reader.PeekChar() == '=' {
-			l.advance() // consume '='
+			l.advance()
 			tok = token.Token{Type: token.NOT_EQ, Literal: "!="}
 		} else {
 			tok = token.Token{Type: token.BANG, Literal: "!"}
 		}
 		l.advance()
+
 	case '<':
 		if l.reader.PeekChar() == '=' {
 			l.advance()
@@ -88,6 +85,7 @@ func (l *Lexer) NextToken() token.Token {
 			tok = token.Token{Type: token.LT, Literal: "<"}
 		}
 		l.advance()
+
 	case '>':
 		if l.reader.PeekChar() == '=' {
 			l.advance()
@@ -97,23 +95,90 @@ func (l *Lexer) NextToken() token.Token {
 		}
 		l.advance()
 
-	// EOF — InputReader returns null byte when past the end
+	case '+':
+		if l.reader.PeekChar() == '+' {
+			l.advance()
+			tok = token.Token{Type: token.INC, Literal: "++"}
+		} else if l.reader.PeekChar() == '=' {
+			l.advance()
+			tok = token.Token{Type: token.PLUS_ASSIGN, Literal: "+="}
+		} else {
+			tok = token.Token{Type: token.PLUS, Literal: "+"}
+		}
+		l.advance()
+
+	case '-':
+		if l.reader.PeekChar() == '-' {
+			l.advance()
+			tok = token.Token{Type: token.DEC, Literal: "--"}
+		} else if l.reader.PeekChar() == '=' {
+			l.advance()
+			tok = token.Token{Type: token.MINUS_ASSIGN, Literal: "-="}
+		} else {
+			tok = token.Token{Type: token.MINUS, Literal: "-"}
+		}
+		l.advance()
+
+	case '*':
+		if l.reader.PeekChar() == '=' {
+			l.advance()
+			tok = token.Token{Type: token.ASTERISK_ASSIGN, Literal: "*="}
+		} else {
+			tok = token.Token{Type: token.ASTERISK, Literal: "*"}
+		}
+		l.advance()
+
+	case '/':
+		if l.reader.PeekChar() == '=' {
+			l.advance()
+			tok = token.Token{Type: token.SLASH_ASSIGN, Literal: "/="}
+		} else {
+			tok = token.Token{Type: token.SLASH, Literal: "/"}
+		}
+		l.advance()
+
+	case '&':
+		if l.reader.PeekChar() == '&' {
+			l.advance()
+			tok = token.Token{Type: token.AND, Literal: "&&"}
+		} else {
+			tok = token.Token{Type: token.ILLEGAL, Literal: string(l.currentChar)}
+		}
+		l.advance()
+
+	case '|':
+		if l.reader.PeekChar() == '|' {
+			l.advance()
+			tok = token.Token{Type: token.OR, Literal: "||"}
+		} else {
+			tok = token.Token{Type: token.ILLEGAL, Literal: string(l.currentChar)}
+		}
+		l.advance()
+
+	// ---------------------------------------------------------------
+	// String literals
+	// ---------------------------------------------------------------
+	case '"':
+		literal := l.readString()
+		return token.Token{Type: token.STRING, Literal: literal}
+
+	// ---------------------------------------------------------------
+	// EOF
+	// ---------------------------------------------------------------
 	case 0:
 		tok = token.Token{Type: token.EOF, Literal: ""}
 
-	// Multi-character tokens: identifiers, keywords, integers
+	// ---------------------------------------------------------------
+	// Multi-character tokens: identifiers, keywords, numbers
+	// ---------------------------------------------------------------
 	default:
 		if isLetter(l.currentChar) {
-			// First char is a letter/underscore — continue consuming letters, digits, underscores
 			literal := l.readWhile(isIdentChar)
 			tokenType := token.LookupIdentifier(literal)
-			// readWhile already advanced past the last char — return directly
 			return token.Token{Type: tokenType, Literal: literal}
 		} else if isDigit(l.currentChar) {
-			literal := l.readWhile(isDigit)
-			return token.Token{Type: token.INT, Literal: literal}
+			return l.readNumber()
 		} else {
-			// Unrecognized character
 			tok = token.Token{Type: token.ILLEGAL, Literal: string(l.currentChar)}
 			l.advance()
 		}
@@ -145,14 +210,45 @@ func (l *Lexer) readWhile(condition func(byte) bool) string {
 	return l.reader.source[start:l.reader.position]
 }
 
+// readNumber reads an integer or float literal.
+// If a '.' is encountered after digits, it continues consuming as a float.
+func (l *Lexer) readNumber() token.Token {
+	start := l.reader.position
+	for isDigit(l.currentChar) {
+		l.advance()
+	}
+	// check for decimal point followed by more digits → float
+	if l.currentChar == '.' && isDigit(l.reader.PeekChar()) {
+		l.advance() // consume '.'
+		for isDigit(l.currentChar) {
+			l.advance()
+		}
+		literal := l.reader.source[start:l.reader.position]
+		return token.Token{Type: token.FLOAT, Literal: literal}
+	}
+	literal := l.reader.source[start:l.reader.position]
+	return token.Token{Type: token.INT, Literal: literal}
+}
+
+// readString consumes characters between double quotes and returns the inner content.
+// currentChar must be '"' on entry. The closing '"' is consumed before returning.
+func (l *Lexer) readString() string {
+	l.advance() // consume opening '"'
+	start := l.reader.position
+	for l.currentChar != '"' && l.currentChar != 0 {
+		l.advance()
+	}
+	str := l.reader.source[start:l.reader.position]
+	l.advance() // consume closing '"'
+	return str
+}
+
 // isLetter returns true for a-z, A-Z, and underscore.
-// Used to validate the FIRST character of an identifier.
 func isLetter(ch byte) bool {
 	return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || ch == '_'
 }
 
 // isIdentChar returns true for letters, underscores, AND digits.
-// Used for every character AFTER the first in an identifier — allows counter_1, myVar2 etc.
 func isIdentChar(ch byte) bool {
 	return isLetter(ch) || isDigit(ch)
 }
