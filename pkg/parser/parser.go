@@ -62,6 +62,7 @@ func (p *Parser) registerParseFunctions() {
 
 	// --- infix functions ---
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
+	p.infixParseFns[token.ASSIGN] = p.parseInfixExpression
 	p.infixParseFns[token.PLUS] = p.parseInfixExpression
 	p.infixParseFns[token.MINUS] = p.parseInfixExpression
 	p.infixParseFns[token.SLASH] = p.parseInfixExpression

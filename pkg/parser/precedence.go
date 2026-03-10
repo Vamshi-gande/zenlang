@@ -18,6 +18,7 @@ const (
 // precedences maps each infix/postfix token type to its precedence level.
 // The parser looks up the peek token here to decide whether to keep consuming.
 var precedences = map[token.TokenType]int{
+	token.ASSIGN:          LOWEST + 1, // bare assignment: x = expr  (weaker than everything else)
 	token.EQ:              EQUALS,
 	token.NOT_EQ:          EQUALS,
 	token.LT:              LESSGREATER,
