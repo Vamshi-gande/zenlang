@@ -249,6 +249,19 @@ func TestFloatLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestStringLiteralExpression(t *testing.T) {
+	program := parse(t, `"hello"`)
+	stmts := requireStatements(t, program, 1)
+	expr := requireExpressionStatement(t, stmts[0])
+	sl, ok := expr.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("expr is %T, want *ast.StringLiteral", expr)
+	}
+	if sl.Value != "hello" {
+		t.Errorf("StringLiteral.Value = %q, want \"hello\"", sl.Value)
+	}
+}
+
 func TestBooleanLiteralTrue(t *testing.T) {
 	program := parse(t, "true;")
 	stmts := requireStatements(t, program, 1)
