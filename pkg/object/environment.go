@@ -51,3 +51,22 @@ func (e *Environment) Set(name string, val Object) Object {
 	e.store[name] = val
 	return val
 }
+
+// Update walks the scope chain looking for the first environment that already
+// holds the given name and updates it there. This is what makes closure
+// mutation work — an inner function can modify a variable in the enclosing
+// scope rather than shadowing it.
+// If the name is not found in any scope, it is created in the current scope.
+func (e *Environment) Update(name string, val Object) Object {
+	current := e
+	for current != nil {
+		if _, ok := current.store[name]; ok {
+			current.store[name] = val
+			return val
+		}
+		current = current.outer
+	}
+	// Not found anywhere — create in innermost scope.
+	e.store[name] = val
+	return val
+}
