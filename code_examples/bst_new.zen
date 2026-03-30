@@ -1,0 +1,98 @@
+let BST = fn() {
+    let root = null
+
+    let createNode = fn(value, left, right) {
+        return {"value": value, "left": left, "right": right}
+    }
+
+    let insertHelper = fn(node, value) {
+        if (node == null) {
+            return createNode(value, null, null)
+        }
+        if (value < node["value"]) {
+            return createNode(node["value"], insertHelper(node["left"], value), node["right"])
+        } else {
+            return createNode(node["value"], node["left"], insertHelper(node["right"], value))
+        }
+    }
+
+    let searchHelper = fn(node, value) {
+        if (node == null) {
+            return false
+        }
+        if (node["value"] == value) {
+            return true
+        }
+        if (value < node["value"]) {
+            return searchHelper(node["left"], value)
+        } else {
+            return searchHelper(node["right"], value)
+        }
+    }
+
+    let inorderHelper = fn(node) {
+        if (node != null) {
+            inorderHelper(node["left"])
+            print(node["value"])
+            inorderHelper(node["right"])
+        }
+    }
+
+    let minHelper = fn(node) {
+        if (node == null) {
+            return null
+        }
+        if (node["left"] == null) {
+            return node["value"]
+        }
+        return minHelper(node["left"])
+    }
+
+    let maxHelper = fn(node) {
+        if (node == null) {
+            return null
+        }
+        if (node["right"] == null) {
+            return node["value"]
+        }
+        return maxHelper(node["right"])
+    }
+
+    return {
+        "insert": fn(value) {
+            root = insertHelper(root, value)
+        },
+        "search": fn(value) {
+            return searchHelper(root, value)
+        },
+        "inorder": fn() {
+            inorderHelper(root)
+        },
+        "min": fn() {
+            return minHelper(root)
+        },
+        "max": fn() {
+            return maxHelper(root)
+        }
+    }
+}
+
+let bst = BST()
+bst["insert"](50)
+bst["insert"](30)
+bst["insert"](70)
+bst["insert"](20)
+bst["insert"](40)
+bst["insert"](60)
+bst["insert"](80)
+
+print("Inorder traversal:")
+bst["inorder"]()
+print("Search for 40:")
+print(bst["search"](40))
+print("Search for 25:")
+print(bst["search"](25))
+print("Min value:")
+print(bst["min"]())
+print("Max value:")
+print(bst["max"]())

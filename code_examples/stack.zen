@@ -1,0 +1,54 @@
+let createStack = fn() {
+    let items = []
+
+    let pushItem = fn(item) {
+        items = push(items, item)
+    }
+
+    let pop = fn() {
+        if (len(items) == 0) {
+            return null
+        }
+        let item = last(items)
+        let newItems = []
+        let i = 0
+        while (i < len(items) - 1) {
+            newItems = push(newItems, items[i])
+            i = i + 1
+        }
+        items = newItems
+        return item
+    }
+
+    let peek = fn() {
+        if (len(items) == 0) {
+            return null
+        }
+        return last(items)
+    }
+
+    let isEmpty = fn() {
+        return len(items) == 0
+    }
+
+    let size = fn() {
+        return len(items)
+    }
+
+    return {
+        "push": pushItem,
+        "pop": pop,
+        "peek": peek,
+        "isEmpty": isEmpty,
+        "size": size
+    }
+}
+
+let stack = createStack()
+stack["push"](10)
+stack["push"](20)
+stack["push"](30)
+print(stack["size"]())
+print(stack["peek"]())
+print(stack["pop"]())
+print(stack["size"]())

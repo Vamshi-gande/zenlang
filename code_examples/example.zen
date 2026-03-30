@@ -1,0 +1,32 @@
+let x = 5
+let y = 10
+let z = x + y
+print(z)
+
+let add = fn(a, b) {
+    return a + b
+}
+
+let result = add(7, 3)
+print(result)
+
+if (result > 10) {
+    print(1)
+} else {
+    print(0)
+}
+
+let i = 0
+while (i < 3) {
+    print(i)
+    i = i + 1
+}
+
+let numbers = [1, 2, 3, 4, 5]
+print(len(numbers))
+print(first(numbers))
+print(last(numbers))
+
+let person = {"name": "Alice", "age": 30}
+print(person["name"])
+print(person["age"])

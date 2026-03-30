@@ -1,0 +1,64 @@
+let LinkedList = fn() {
+    let items = []
+
+    return {
+        "append": fn(value) {
+            items = push(items, value)
+        },
+        "prepend": fn(value) {
+            let newItems = [value]
+            let i = 0
+            while (i < len(items)) {
+                newItems = push(newItems, items[i])
+                i = i + 1
+            }
+            items = newItems
+        },
+        "get": fn(index) {
+            if (index < 0 || index >= len(items)) {
+                return null
+            }
+            return items[index]
+        },
+        "remove": fn(index) {
+            if (index < 0 || index >= len(items)) {
+                return null
+            }
+            let removed = items[index]
+            let newItems = []
+            let i = 0
+            while (i < len(items)) {
+                if (i != index) {
+                    newItems = push(newItems, items[i])
+                }
+                i = i + 1
+            }
+            items = newItems
+            return removed
+        },
+        "size": fn() {
+            return len(items)
+        },
+        "isEmpty": fn() {
+            return len(items) == 0
+        },
+        "print": fn() {
+            let i = 0
+            while (i < len(items)) {
+                print(items[i])
+                i = i + 1
+            }
+        }
+    }
+}
+
+let list = LinkedList()
+list["append"](10)
+list["append"](20)
+list["prepend"](5)
+print(list["size"]())
+list["print"]()
+print(list["get"](1))
+list["remove"](1)
+print(list["size"]())
+list["print"]()
