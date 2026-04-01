@@ -1,53 +1,85 @@
+let Node = fn(data) {
+    return {
+        "data": data,
+        "next": null
+    }
+}
+
+let appendHelper = fn(lst, value) {
+    if (lst == null) {
+        return Node(value)
+    } else {
+        return {
+            "data": lst["data"],
+            "next": appendHelper(lst["next"], value)
+        }
+    }
+}
+
+let removeHelper = fn(lst, index) {
+    if (lst == null || index < 0) {
+        return null
+    }
+    if (index == 0) {
+        return lst["next"]
+    } else {
+        return {
+            "data": lst["data"],
+            "next": removeHelper(lst["next"], index - 1)
+        }
+    }
+}
+
+let getHelper = fn(lst, index) {
+    if (lst == null || index < 0) {
+        return null
+    }
+    if (index == 0) {
+        return lst["data"]
+    } else {
+        return getHelper(lst["next"], index - 1)
+    }
+}
+
+let sizeHelper = fn(lst) {
+    if (lst == null) {
+        return 0
+    } else {
+        return 1 + sizeHelper(lst["next"])
+    }
+}
+
+let printHelper = fn(lst) {
+    if (lst != null) {
+        print(lst["data"])
+        printHelper(lst["next"])
+    }
+}
+
 let LinkedList = fn() {
-    let items = []
+    let head = null
 
     return {
         "append": fn(value) {
-            items = push(items, value)
+            head = appendHelper(head, value)
         },
         "prepend": fn(value) {
-            let newItems = [value]
-            let i = 0
-            while (i < len(items)) {
-                newItems = push(newItems, items[i])
-                i = i + 1
-            }
-            items = newItems
+            head = {"data": value, "next": head}
         },
         "get": fn(index) {
-            if (index < 0 || index >= len(items)) {
-                return null
-            }
-            return items[index]
+            return getHelper(head, index)
         },
         "remove": fn(index) {
-            if (index < 0 || index >= len(items)) {
-                return null
-            }
-            let removed = items[index]
-            let newItems = []
-            let i = 0
-            while (i < len(items)) {
-                if (i != index) {
-                    newItems = push(newItems, items[i])
-                }
-                i = i + 1
-            }
-            items = newItems
-            return removed
+            head = removeHelper(head, index)
         },
         "size": fn() {
-            return len(items)
+            return sizeHelper(head)
         },
         "isEmpty": fn() {
-            return len(items) == 0
+            return head == null
         },
         "print": fn() {
-            let i = 0
-            while (i < len(items)) {
-                print(items[i])
-                i = i + 1
-            }
+            printHelper(head)
         }
     }
 }
